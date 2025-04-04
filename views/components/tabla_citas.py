@@ -26,9 +26,16 @@ class TablaCitas:
         self.tree.pack(fill=tk.BOTH, expand=True)
 
     def actualizar_datos(self, datos):
+        """Actualiza los datos mostrados usando el caché"""
         self.datos_completos = datos
         self.pagina_actual = 0
         self.mostrar_pagina()
+
+        # Reiniciar paginación solo si hay suficientes datos
+        if len(self.datos_completos) > 5:
+            if hasattr(self, 'timer_paginacion'):
+                self.parent.after_cancel(self.timer_paginacion)
+            self.iniciar_paginacion()
 
     def mostrar_pagina(self):
         # Limpiar tabla

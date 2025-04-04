@@ -32,16 +32,8 @@ class MainView:
         # Reloj
         self.reloj = Reloj(self.main_frame)
 
-        # Tabla de citas (sin scrollbar)
+        # Tabla de citas
         self.tabla_citas = TablaCitas(self.main_frame)
-
-        # Botón de actualización
-        self.actualizar_btn = tk.Button(
-            self.main_frame,
-            text="Actualizar",
-            command=self.controller.actualizar_datos
-        )
-        self.actualizar_btn.pack(pady=10)
 
     def mostrar_datos(self, datos):
         self.tabla_citas.actualizar_datos(datos)
