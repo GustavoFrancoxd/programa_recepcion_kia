@@ -23,29 +23,47 @@ class GoogleSheetsManager:
             ).execute()
 
             values = result.get('values', [])
+            #print(values)
+            print(self._filtrar_datos(values))
             return self._filtrar_datos(values)
         except Exception as e:
             print(f"Error al obtener datos: {e}")
             return []
 
+
+
     def _filtrar_datos(self, values):
+        # Obtén la fecha actual en formato DD/MM/YYYY
         hoy = datetime.now().strftime('%d/%m/%Y')
         datos_filtrados = []
 
         for fila in values:
             if len(fila) >= 14:
-                fecha = fila[5] if len(fila) > 5 else ''
-                checkbox_i = fila[8].lower() == 'true' if len(fila) > 8 else False
-                checkbox_m = fila[12].lower() == 'true' if len(fila) > 12 else False
+                # Extrae la fecha cruda (ej: '3/8/2024')
+                fecha_raw = fila[5] if len(fila) > 5 else ''
+
+                # Intenta parsear la fecha en DOS formatos posibles
+                try:
+                    # Intenta como DD/MM/YYYY (ej: '8/3/2024' → 8 de marzo)
+                    fecha_obj = datetime.strptime(fecha_raw, '%d/%m/%Y')
+                    fecha = fecha_obj.strftime('%d/%m/%Y')  # Formatea a DD/MM/YYYY
+                except ValueError:
+                    try:
+                        # Si falla, intenta como MM/DD/YYYY (ej: '3/8/2024' → 3 de agosto)
+                        fecha_obj = datetime.strptime(fecha_raw, '%m/%d/%Y')
+                        fecha = fecha_obj.strftime('%d/%m/%Y')  # Convierte a DD/MM/YYYY
+                    except ValueError:
+                        fecha = ''  # Si no es ninguna, descarta la fila
+
+                checkbox_i = str(fila[8]).strip().upper() == 'TRUE' if len(fila) > 8 else False
+                checkbox_m = str(fila[12]).strip().upper() == 'TRUE' if len(fila) > 12 else False
 
                 if fecha == hoy and checkbox_i and not checkbox_m:
-                    cliente = fila[1] if len(fila) > 1 else ''
-                    hora = fila[6] if len(fila) > 6 else ''
-                    asesor = fila[13] if len(fila) > 13 else ''
                     datos_filtrados.append({
-                        'cliente': cliente,
+                        'cliente': fila[1] if len(fila) > 1 else '',
                         'fecha': fecha,
-                        'hora': hora,
-                        'asesor': asesor
+                        'hora': fila[6] if len(fila) > 6 else '',
+                        'asesor': fila[13] if len(fila) > 13 else ''
                     })
+
         return datos_filtrados
