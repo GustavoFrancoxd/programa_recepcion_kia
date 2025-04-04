@@ -32,7 +32,7 @@ class MainView:
         # Reloj
         self.reloj = Reloj(self.main_frame)
 
-        # Tabla de citas
+        # Tabla de citas (sin scrollbar)
         self.tabla_citas = TablaCitas(self.main_frame)
 
         # Botón de actualización
