@@ -1,6 +1,6 @@
+# tabla_citas.py
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime
 
 
 class TablaCitas:
@@ -8,18 +8,17 @@ class TablaCitas:
         self.parent = parent
         self.datos_completos = []
         self.pagina_actual = 0
-        self.ELEMENTOS_POR_PAGINA = 8  # 8 filas fijas
+        self.ELEMENTOS_POR_PAGINA = 7  # 7 elementos reales + 1 fila vacía
+        self.TOTAL_FILAS = 8  # Filas a mostrar
 
-        # Configuración dinámica
-        self.altura_base = 40  # Altura mínima por fila
+        self.altura_base = 40
         self._configurar_estilos()
         self._crear_tabla()
         self.iniciar_paginacion()
-        self.tree.bind('<Configure>', self._ajustar_filas)
+        self.parent.bind("<Configure>", self._ajustar_filas)
 
     def _configurar_estilos(self):
         self.style = ttk.Style()
-        # Estilo base dinámico
         self.style.configure("Dynamic.Treeview",
                              font=('Helvetica', 14),
                              rowheight=self.altura_base)
@@ -33,10 +32,10 @@ class TablaCitas:
             columns=columns,
             show='headings',
             style="Dynamic.Treeview",
-            selectmode='none'  # Deshabilitar selección
+            selectmode='none',
+            height=self.TOTAL_FILAS  # Mostrar 8 filas siempre
         )
 
-        # Configurar columnas
         for col in columns:
             self.tree.heading(col, text=col, anchor=tk.CENTER)
             self.tree.column(col, anchor=tk.CENTER, stretch=True)
@@ -44,25 +43,20 @@ class TablaCitas:
         self.tree.pack(fill=tk.BOTH, expand=True)
 
     def _ajustar_filas(self, event=None):
-        """Ajusta altura de filas y fuentes dinámicamente"""
         altura_contenedor = self.parent.winfo_height()
-
         if altura_contenedor > 0:
-            # Calcular nueva altura por fila
-            nueva_altura = max(25, altura_contenedor // self.ELEMENTOS_POR_PAGINA)
+            nueva_altura = altura_contenedor // self.TOTAL_FILAS
+            self.style.configure("Dynamic.Treeview", rowheight=nueva_altura)
 
-            # Actualizar estilos
-            self.style.configure("Dynamic.Treeview",
-                                 rowheight=nueva_altura,
-                                 font=('Helvetica', max(12, nueva_altura // 4)))
+            font_size = max(12, int(nueva_altura * 0.3))
+            self.style.configure("Dynamic.Treeview", font=('Helvetica', font_size))
             self.style.configure("Dynamic.Treeview.Heading",
-                                 font=('Helvetica', max(14, nueva_altura // 3), 'bold'))
+                                 font=('Helvetica', font_size + 2, 'bold'))
 
     def actualizar_datos(self, datos):
         self.datos_completos = datos
         self.pagina_actual = 0
         self.mostrar_pagina()
-        self._ajustar_filas()  # Forzar ajuste inicial
 
     def mostrar_pagina(self):
         self.tree.delete(*self.tree.get_children())
@@ -71,7 +65,7 @@ class TablaCitas:
         fin = inicio + self.ELEMENTOS_POR_PAGINA
         datos_pagina = self.datos_completos[inicio:fin]
 
-        # Insertar datos reales
+        # Insertar máximo 7 elementos reales
         for dato in datos_pagina:
             self.tree.insert('', tk.END, values=(
                 dato['cliente'],
@@ -80,8 +74,9 @@ class TablaCitas:
                 dato['asesor']
             ))
 
-        # Rellenar filas vacías hasta completar 8
-        for _ in range(self.ELEMENTOS_POR_PAGINA - len(datos_pagina)):
+        # Añadir filas vacías para completar 8
+        total_filas_vacias = self.TOTAL_FILAS - len(datos_pagina)
+        for _ in range(total_filas_vacias):
             self.tree.insert('', tk.END, values=('', '', '', ''))
 
     def siguiente_pagina(self):
