@@ -1,3 +1,4 @@
+# reloj.py
 import tkinter as tk
 from datetime import datetime
 
@@ -5,13 +6,13 @@ from datetime import datetime
 class Reloj:
     def __init__(self, parent):
         self.frame = tk.Frame(parent)
-        self.frame.grid(sticky="ew")  # Cambiado de pack() a grid()
 
         self.label = tk.Label(
             self.frame,
-            font=('Helvetica', 12)
+            font=('Helvetica', 12),
+            padx=10  # Espaciado para mejor visualización
         )
-        self.label.pack(anchor=tk.CENTER)  # Mantenemos pack() interno al frame
+        self.label.pack(side=tk.RIGHT)  # Alineación a la derecha
 
         self.actualizar()
 
