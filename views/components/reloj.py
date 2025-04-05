@@ -5,13 +5,13 @@ from datetime import datetime
 class Reloj:
     def __init__(self, parent):
         self.frame = tk.Frame(parent)
-        self.frame.pack(anchor=tk.NE)
+        self.frame.grid(sticky="ew")  # Cambiado de pack() a grid()
 
         self.label = tk.Label(
             self.frame,
-            font=('Helvetica', 10)
+            font=('Helvetica', 12)
         )
-        self.label.pack()
+        self.label.pack(anchor=tk.CENTER)  # Mantenemos pack() interno al frame
 
         self.actualizar()
 

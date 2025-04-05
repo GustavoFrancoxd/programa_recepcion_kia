@@ -1,13 +1,39 @@
 import tkinter as tk
 from tkinter import ttk
 
+
 class TablaCitas:
     def __init__(self, parent):
         self.parent = parent
         self.datos_completos = []
         self.pagina_actual = 0
+
+        # Configurar altura de filas (en píxeles)
+        self.altura_fila_normal = 60  # Aumenté a 60px para modo normal
+        self.altura_fila_fullscreen = 80  # 80px para pantalla completa
+
+        self._configurar_estilos()
         self._crear_tabla()
         self.iniciar_paginacion()
+
+    def _configurar_estilos(self):
+        self.style = ttk.Style()
+
+        # Configuración para modo normal
+        self.style.configure("Normal.Treeview",
+                             font=('Helvetica', 14),
+                             rowheight=self.altura_fila_normal)  # Altura modificada
+
+        self.style.configure("Normal.Treeview.Heading",
+                             font=('Helvetica', 16, 'bold'))
+
+        # Configuración para pantalla completa
+        self.style.configure("Fullscreen.Treeview",
+                             font=('Helvetica', 18),
+                             rowheight=self.altura_fila_fullscreen)  # Altura aumentada
+
+        self.style.configure("Fullscreen.Treeview.Heading",
+                             font=('Helvetica', 20, 'bold'))
 
     def _crear_tabla(self):
         columns = ('Cliente', 'Fecha', 'Hora', 'Asesor')
@@ -15,23 +41,37 @@ class TablaCitas:
             self.parent,
             columns=columns,
             show='headings',
-            height=5  # Mostrar solo 5 filas
+            height=5,  # Mostrar exactamente 5 filas
+            style="Normal.Treeview"
         )
 
-        # Configurar columnas
+        # Configurar columnas para que ocupen espacio uniforme
+        ancho_columna = 200  # Ancho base para columnas
         for col in columns:
             self.tree.heading(col, text=col)
-            self.tree.column(col, width=150, anchor=tk.CENTER)
+            self.tree.column(col, width=ancho_columna, anchor=tk.CENTER, stretch=True)
 
+        # Asegurar que la tabla ocupe todo el espacio
         self.tree.pack(fill=tk.BOTH, expand=True)
 
+    def actualizar_estilo(self, fullscreen):
+        """Cambia entre estilos normal y pantalla completa"""
+        if fullscreen:
+            self.tree.configure(style="Fullscreen.Treeview")
+            # Ajustar altura de filas para pantalla completa
+            self.style.configure("Fullscreen.Treeview",
+                                 rowheight=self.altura_fila_fullscreen)
+        else:
+            self.tree.configure(style="Normal.Treeview")
+            # Ajustar altura de filas para modo normal
+            self.style.configure("Normal.Treeview",
+                                 rowheight=self.altura_fila_normal)
+
     def actualizar_datos(self, datos):
-        """Actualiza los datos mostrados usando el caché"""
         self.datos_completos = datos
         self.pagina_actual = 0
         self.mostrar_pagina()
 
-        # Reiniciar paginación solo si hay suficientes datos
         if len(self.datos_completos) > 5:
             if hasattr(self, 'timer_paginacion'):
                 self.parent.after_cancel(self.timer_paginacion)
@@ -39,15 +79,14 @@ class TablaCitas:
 
     def mostrar_pagina(self):
         # Limpiar tabla
-        for i in self.tree.get_children():
-            self.tree.delete(i)
+        self.tree.delete(*self.tree.get_children())
 
         # Calcular índices de la página actual
         inicio = self.pagina_actual * 5
         fin = inicio + 5
         datos_pagina = self.datos_completos[inicio:fin]
 
-        # Añadir datos de la página actual
+        # Añadir datos
         for dato in datos_pagina:
             self.tree.insert('', tk.END, values=(
                 dato['cliente'],
@@ -56,8 +95,15 @@ class TablaCitas:
                 dato['asesor']
             ))
 
+        # Asegurar que siempre se muestren 5 filas
+        filas_mostradas = len(datos_pagina)
+        if filas_mostradas < 5:
+            for _ in range(5 - filas_mostradas):
+                self.tree.insert('', tk.END, values=('', '', '', ''))
+
+    # Resto de métodos permanecen igual...
     def siguiente_pagina(self):
-        total_paginas = (len(self.datos_completos) + 4) // 5  # Redondeo hacia arriba
+        total_paginas = (len(self.datos_completos) + 4) // 5
         self.pagina_actual = (self.pagina_actual + 1) % total_paginas
         self.mostrar_pagina()
 
