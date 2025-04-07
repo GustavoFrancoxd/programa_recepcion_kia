@@ -7,7 +7,7 @@ class GoogleSheetsManager:
     def __init__(self):
         self.SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         self.KEY = 'key.json'
-        self.SPREADSHEET_ID = '1IJ5zeZMb5R5t8ftEIvP1V74gcckQkQkZi_JjSCOw4ss'
+        self.SPREADSHEET_ID = '1Qd6jbfl2Zoi9dzYrt5Zn_h7t931ic4zjP3-bWI-roJ8'
         self._service = None
 
     @property
@@ -23,7 +23,7 @@ class GoogleSheetsManager:
             sheet = self.service.spreadsheets()
             result = sheet.values().get(
                 spreadsheetId=self.SPREADSHEET_ID,
-                range='Hoja 1!A2:O'
+                range='Citas 2024!A2:O'
             ).execute()
 
             values = result.get('values', [])

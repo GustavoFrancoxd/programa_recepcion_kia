@@ -62,9 +62,9 @@ class CitasController:
             print(f"Error en actualización en segundo plano: {e}")
 
     def _programar_actualizaciones(self):
-        """Programa actualizaciones periódicas cada 15 minutos"""
+        """Programa actualizaciones periódicas cada 1 minuto"""
         self.actualizar_datos()
-        self.root.after(900000, self._programar_actualizaciones)  # 15 minutos = 900,000 ms
+        self.root.after(120000, self._programar_actualizaciones)  # 60,000 ms = 1 minuto
 
     def toggle_fullscreen(self):
         self.view.toggle_fullscreen()

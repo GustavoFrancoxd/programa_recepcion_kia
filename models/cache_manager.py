@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import os
 
 class CacheManager:
-    def __init__(self, cache_file='citas_cache.json', cache_duration=15):
+    def __init__(self, cache_file='citas_cache.json', cache_duration=1):
         self.cache_file = cache_file
         self.cache_duration = timedelta(minutes=cache_duration)
         self.cache = self._load_cache()
