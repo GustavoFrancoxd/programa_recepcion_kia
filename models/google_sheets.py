@@ -1,13 +1,14 @@
+# google_sheets.py
 from datetime import datetime
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
-
 
 class GoogleSheetsManager:
     def __init__(self):
         self.SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         self.KEY = 'key.json'
         self.SPREADSHEET_ID = '1Qd6jbfl2Zoi9dzYrt5Zn_h7t931ic4zjP3-bWI-roJ8'
+        self.RANGO = "'CITAS 2025'!A2:P"  # Asegúrate que el nombre de la hoja es correcto
         self._service = None
 
     @property
@@ -23,24 +24,35 @@ class GoogleSheetsManager:
             sheet = self.service.spreadsheets()
             result = sheet.values().get(
                 spreadsheetId=self.SPREADSHEET_ID,
-                range='Citas 2024!A2:O'
+                range=self.RANGO
             ).execute()
 
             values = result.get('values', [])
-            return self._filtrar_datos(values)  # Ahora sí es un método de la clase
+            return self._filtrar_datos(values)
         except Exception as e:
             print(f"Error al obtener datos: {e}")
             return []
 
-    def _filtrar_datos(self, values):  # Convertido a método de clase
-        """Filtra los datos de la hoja de cálculo"""
+    def _filtrar_datos(self, values):
+        """Filtra los datos según las columnas especificadas"""
         hoy = datetime.now().strftime('%d/%m/%Y')
         datos_filtrados = []
 
         for fila in values:
-            if len(fila) >= 14:
-                fecha_raw = fila[5] if len(fila) > 5 else ''
+            try:
+                # Verificar que la fila tenga suficientes columnas
+                if len(fila) < 14:  # Necesitamos hasta la columna N (0-based index)
+                    continue
 
+                # Obtener valores de las columnas especificadas
+                cliente = fila[2] if len(fila) > 2 else ''        # Columna C (índice 2)
+                fecha_raw = fila[6] if len(fila) > 6 else ''      # Columna G (índice 6)
+                hora = fila[7] if len(fila) > 7 else ''           # Columna H (índice 7)
+                confirmada = fila[9].strip().upper() == 'TRUE' if len(fila) > 9 else False  # Columna J (índice 9)
+                cancelada = fila[12].strip().upper() == 'TRUE' if len(fila) > 12 else False # Columna M (índice 12)
+                asesor = fila[13] if len(fila) > 13 else ''       # Columna N (índice 13)
+
+                # Procesar fecha
                 try:
                     fecha_obj = datetime.strptime(fecha_raw, '%d/%m/%Y')
                     fecha = fecha_obj.strftime('%d/%m/%Y')
@@ -51,15 +63,19 @@ class GoogleSheetsManager:
                     except ValueError:
                         fecha = ''
 
-                checkbox_i = str(fila[8]).strip().upper() == 'TRUE' if len(fila) > 8 else False
-                checkbox_m = str(fila[12]).strip().upper() == 'TRUE' if len(fila) > 12 else False
-
-                if fecha == hoy and checkbox_i and not checkbox_m:
+                # Filtrar citas de hoy confirmadas y no canceladas
+                if fecha == hoy and confirmada and not cancelada:
                     datos_filtrados.append({
-                        'cliente': fila[1] if len(fila) > 1 else '',
+                        'cliente': cliente,
                         'fecha': fecha,
-                        'hora': fila[6] if len(fila) > 6 else '',
-                        'asesor': fila[13] if len(fila) > 13 else ''
+                        'hora': hora,
+                        'asesor': asesor,
+                        'confirmada': confirmada,
+                        'cancelada': cancelada
                     })
+
+            except Exception as e:
+                print(f"Error procesando fila: {e}")
+                continue
 
         return datos_filtrados
