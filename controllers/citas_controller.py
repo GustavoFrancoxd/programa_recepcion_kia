@@ -1,15 +1,11 @@
 from views.main_view import MainView
 from models.google_sheets import GoogleSheetsManager
-from models.cache_manager import CacheManager
 from datetime import datetime
-
-
 
 class CitasController:
     def __init__(self, root):
         self.root = root
         self.sheets_manager = GoogleSheetsManager()
-        self.cache = CacheManager()
         self.ultima_peticion = None
         self.contador_peticiones = 0
 
@@ -55,7 +51,6 @@ class CitasController:
         """Actualiza los datos en segundo plano"""
         try:
             datos = self.sheets_manager.obtener_citas_hoy()
-            self.cache.update_cache(datos)
             # Actualizar vista en el hilo principal
             self.root.after(0, lambda: self.view.mostrar_datos(datos))
         except Exception as e:
@@ -65,6 +60,3 @@ class CitasController:
         """Programa actualizaciones periódicas cada 1 minuto"""
         self.actualizar_datos()
         self.root.after(120000, self._programar_actualizaciones)  # 60,000 ms = 1 minuto
-
-    def toggle_fullscreen(self):
-        self.view.toggle_fullscreen()

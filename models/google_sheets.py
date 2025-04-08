@@ -1,4 +1,3 @@
-# google_sheets.py
 from datetime import datetime
 from googleapiclient.discovery import build
 from google.oauth2 import service_account

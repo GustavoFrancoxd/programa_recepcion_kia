@@ -1,4 +1,3 @@
-# reloj.py
 import tkinter as tk
 from datetime import datetime
 
